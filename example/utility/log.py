@@ -1,6 +1,6 @@
 from utility.loading_bar import LoadingBar
 import time
-
+import wandb
 
 class Log:
     def __init__(self, log_each: int, initial_epoch=-1):
@@ -41,12 +41,14 @@ class Log:
                 end="",
                 flush=True,
             )
+            wandb.log({"train_epoch/loss": loss, "train_epoch/accuracy": accuracy, "train_epoch/lr": self.learning_rate, "epoch": self.epoch})
 
         else:
             loss = self.epoch_state["loss"] / self.epoch_state["steps"]
             accuracy = self.epoch_state["accuracy"] / self.epoch_state["steps"]
 
             print(f"{loss:12.4f}  │{100*accuracy:10.2f} %  ┃", flush=True)
+            wandb.log({"val/loss": loss, "val/accuracy": accuracy})
 
             if accuracy > self.best_accuracy:
                 self.best_accuracy = accuracy
@@ -73,6 +75,7 @@ class Log:
                 end="",
                 flush=True,
             )
+            wandb.log({"train/loss": loss, "train/accuracy": accuracy, "train/learning_rate": learning_rate, "train/epoch": self.epoch})
 
     def _eval_step(self, loss, accuracy) -> None:
         self.epoch_state["loss"] += loss.sum().item()
